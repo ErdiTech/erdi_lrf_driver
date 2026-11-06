@@ -1,0 +1,36 @@
+name: CI
+on:
+  push:
+    branches: [main]
+  pull_request:
+jobs:
+  colcon:
+    runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      matrix:
+        distro: [jazzy, humble]
+    container: ros:${{ matrix.distro }}
+    steps:
+      # actions/checkout v4.2.2 (2024-10)
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          path: ws/src/erdi_lrf_ros2
+      - name: Install dependencies
+        run: |
+          apt-get update
+          apt-get install -y python3-colcon-common-extensions python3-pytest python3-serial \
+            ros-${{ matrix.distro }}-ament-copyright ros-${{ matrix.distro }}-ament-flake8 \
+            ros-${{ matrix.distro }}-ament-pep257 ros-${{ matrix.distro }}-launch-ros \
+            ros-${{ matrix.distro }}-sensor-msgs
+      - name: Build
+        shell: bash
+        run: |
+          source /opt/ros/${{ matrix.distro }}/setup.bash
+          cd ws && colcon build --packages-select erdi_lrf_ros2
+      - name: Test
+        shell: bash
+        run: |
+          source /opt/ros/${{ matrix.distro }}/setup.bash
+          cd ws && colcon test --packages-select erdi_lrf_ros2 --event-handlers console_direct+
+          colcon test-result --verbose
