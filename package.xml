@@ -11,8 +11,8 @@
   <maintainer email="tommy@erdimail.com">ERDI Technology</maintainer>
   <license>MIT</license>
   <url type="website">https://erdilrf.com</url>
-  <url type="repository">https://github.com/Tommyapi/erdi_lrf_ros2</url>
-  <url type="bugtracker">https://github.com/Tommyapi/erdi_lrf_ros2/issues</url>
+  <url type="repository">https://github.com/ErdiTech/erdi_lrf_ros2</url>
+  <url type="bugtracker">https://github.com/ErdiTech/erdi_lrf_ros2/issues</url>
   <author email="tommy@erdimail.com">ERDI Technology</author>
 
   <exec_depend>rclpy</exec_depend>

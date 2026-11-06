@@ -1,6 +1,6 @@
 # erdi_lrf_ros2
 
-[![CI](https://github.com/Tommyapi/erdi_lrf_ros2/actions/workflows/ci.yml/badge.svg)](https://github.com/Tommyapi/erdi_lrf_ros2/actions/workflows/ci.yml)
+[![CI](https://github.com/ErdiTech/erdi_lrf_ros2/actions/workflows/ci.yml/badge.svg)](https://github.com/ErdiTech/erdi_lrf_ros2/actions/workflows/ci.yml)
 
 ROS 2 driver for [ERDI](https://erdilrf.com) UART laser rangefinder modules
 (905 nm, hundreds of metres to kilometre-class range). It publishes the
@@ -18,7 +18,7 @@ only runtime dependency is `pyserial` (`python3-serial`).
 
 ```bash
 cd ~/ros2_ws/src
-git clone https://github.com/Tommyapi/erdi_lrf_ros2.git
+git clone https://github.com/ErdiTech/erdi_lrf_ros2.git
 cd ~/ros2_ws
 rosdep install --from-paths src --ignore-src -y
 colcon build --packages-select erdi_lrf_ros2
@@ -93,7 +93,7 @@ that runs against a fake serial port, so no hardware is needed.
 
 ## See also
 
-* Worked examples and wiring notes: [Tommyapi/erdi-lrf-ros2-examples](https://github.com/Tommyapi/erdi-lrf-ros2-examples)
+* Worked examples and wiring notes: [ErdiTech/erdi-lrf-ros2-examples](https://github.com/ErdiTech/erdi-lrf-ros2-examples)
 * Python driver and protocol documentation: [ErdiTech/erdi-lrf-drivers](https://github.com/ErdiTech/erdi-lrf-drivers)
 * Model table, datasheets and contact: [erdilrf.com](https://erdilrf.com)
 
