@@ -1,6 +1,6 @@
 # Contributing
 
-Thanks for helping improve `erdi_lrf_ros2`.
+Thanks for helping improve `erdi_lrf_driver`.
 
 Any contribution that you make to this repository will
 be under the MIT license, as dictated by that
@@ -12,8 +12,8 @@ be under the MIT license, as dictated by that
 
 ```bash
 cd ~/ros2_ws
-colcon build --packages-select erdi_lrf_ros2
-colcon test --packages-select erdi_lrf_ros2 --event-handlers console_direct+
+colcon build --packages-select erdi_lrf_driver
+colcon test --packages-select erdi_lrf_driver --event-handlers console_direct+
 colcon test-result --verbose
 ```
 

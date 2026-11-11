@@ -27,7 +27,7 @@ import pytest
 @pytest.mark.linter
 def test_flake8():
     rc, errors = main_with_errors(
-        argv=['--exclude', 'erdi_lrf_ros2/_erdi_lrf'])
+        argv=['--exclude', 'erdi_lrf_driver/_erdi_lrf'])
     assert rc == 0, \
         'Found %d code style errors / warnings:\n' % len(errors) + \
         '\n'.join(errors)

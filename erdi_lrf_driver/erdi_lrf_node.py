@@ -22,8 +22,8 @@
 
 import math
 
-from erdi_lrf_ros2._erdi_lrf import ErdiLRF, ErdiLrfError, get_model
-from erdi_lrf_ros2._erdi_lrf.models import field_of_view_rad
+from erdi_lrf_driver._erdi_lrf import ErdiLRF, ErdiLrfError, get_model
+from erdi_lrf_driver._erdi_lrf.models import field_of_view_rad
 from rcl_interfaces.msg import ParameterDescriptor
 import rclpy
 from rclpy.node import Node

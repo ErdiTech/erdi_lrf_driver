@@ -1,6 +1,13 @@
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-Changelog for package erdi_lrf_ros2
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Changelog for package erdi_lrf_driver
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+0.2.0 (2026-11-11)
+------------------
+* Rename package ``erdi_lrf_ros2`` to ``erdi_lrf_driver`` (REP-144: no redundant
+  ``ros2``, driver packages end in ``driver``). Topics, parameters and
+  executable names are unchanged.
+* Contributors: ERDI TECH LTD
 
 0.1.0 (2026-11-06)
 ------------------

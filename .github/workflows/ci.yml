@@ -15,7 +15,7 @@ jobs:
       # actions/checkout v4.2.2 (2024-10)
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:
-          path: ws/src/erdi_lrf_ros2
+          path: ws/src/erdi_lrf_driver
       - name: Install dependencies
         run: |
           apt-get update
@@ -27,10 +27,10 @@ jobs:
         shell: bash
         run: |
           source /opt/ros/${{ matrix.distro }}/setup.bash
-          cd ws && colcon build --packages-select erdi_lrf_ros2
+          cd ws && colcon build --packages-select erdi_lrf_driver
       - name: Test
         shell: bash
         run: |
           source /opt/ros/${{ matrix.distro }}/setup.bash
-          cd ws && colcon test --packages-select erdi_lrf_ros2 --event-handlers console_direct+
+          cd ws && colcon test --packages-select erdi_lrf_driver --event-handlers console_direct+
           colcon test-result --verbose

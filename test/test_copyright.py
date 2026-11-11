@@ -27,7 +27,7 @@ import pytest
 @pytest.mark.copyright
 @pytest.mark.linter
 def test_copyright():
-    rc = main(argv=['.', 'test', '--exclude', 'erdi_lrf_ros2/_erdi_lrf',
+    rc = main(argv=['.', 'test', '--exclude', 'erdi_lrf_driver/_erdi_lrf',
                     '--exclude', 'setup.py', '--exclude', '.github',
                     '--exclude', '.gitignore'])
     assert rc == 0, 'Found errors'

@@ -40,7 +40,7 @@ def generate_launch_description():
     decls = [DeclareLaunchArgument(k, default_value=v)
              for k, v in args.items()]
     node = Node(
-        package='erdi_lrf_ros2',
+        package='erdi_lrf_driver',
         executable='erdi_lrf_node',
         name='erdi_lrf_node',
         output='screen',

@@ -1,6 +1,6 @@
-# erdi_lrf_ros2
+# erdi_lrf_driver
 
-[![CI](https://github.com/ErdiTech/erdi_lrf_ros2/actions/workflows/ci.yml/badge.svg)](https://github.com/ErdiTech/erdi_lrf_ros2/actions/workflows/ci.yml)
+[![CI](https://github.com/ErdiTech/erdi_lrf_driver/actions/workflows/ci.yml/badge.svg)](https://github.com/ErdiTech/erdi_lrf_driver/actions/workflows/ci.yml)
 
 ROS 2 driver for [ERDI](https://erdilrf.com) UART laser rangefinder modules
 (905 nm, hundreds of metres to kilometre-class range). It publishes the
@@ -10,7 +10,7 @@ altitude/obstacle logic.
 
 Both published ERDI serial protocol families are supported (family A `55 AA`
 command/response, family B free-running `5C` frames). The serial codec is
-bundled in the package (`erdi_lrf_ros2/_erdi_lrf`, MIT, taken from the
+bundled in the package (`erdi_lrf_driver/_erdi_lrf`, MIT, taken from the
 [`erdi-lrf`](https://pypi.org/project/erdi-lrf/) 0.1.1 Python driver), so the
 only runtime dependency is `pyserial` (`python3-serial`).
 
@@ -18,19 +18,19 @@ only runtime dependency is `pyserial` (`python3-serial`).
 
 ```bash
 cd ~/ros2_ws/src
-git clone https://github.com/ErdiTech/erdi_lrf_ros2.git
+git clone https://github.com/ErdiTech/erdi_lrf_driver.git
 cd ~/ros2_ws
 rosdep install --from-paths src --ignore-src -y
-colcon build --packages-select erdi_lrf_ros2
+colcon build --packages-select erdi_lrf_driver
 source install/setup.bash
 ```
 
 ## Run
 
 ```bash
-ros2 launch erdi_lrf_ros2 erdi_lrf.launch.py port:=/dev/ttyUSB0 model:=LRF3000A1 rate:=10.0
+ros2 launch erdi_lrf_driver erdi_lrf.launch.py port:=/dev/ttyUSB0 model:=LRF3000A1 rate:=10.0
 # or
-ros2 run erdi_lrf_ros2 erdi_lrf_node --ros-args -p port:=/dev/ttyUSB0 -p model:=LRF1500H
+ros2 run erdi_lrf_driver erdi_lrf_node --ros-args -p port:=/dev/ttyUSB0 -p model:=LRF1500H
 ros2 topic echo /range
 ```
 
@@ -85,7 +85,7 @@ for an invalid measurement.
 ## Tests
 
 ```bash
-colcon test --packages-select erdi_lrf_ros2 && colcon test-result --verbose
+colcon test --packages-select erdi_lrf_driver && colcon test-result --verbose
 ```
 
 Includes `ament_copyright`, `ament_flake8`, `ament_pep257` and a node test
@@ -97,12 +97,19 @@ that runs against a fake serial port, so no hardware is needed.
 * Python driver and protocol documentation: [ErdiTech/erdi-lrf-drivers](https://github.com/ErdiTech/erdi-lrf-drivers)
 * Model table, datasheets and contact: [erdilrf.com](https://erdilrf.com)
 
-## Migrating from `erdi-lrf-drivers/ros2`
+## Renamed from `erdi_lrf_ros2`
 
-This repository replaces the `ros2/erdi_lrf_ros2` package that used to live in
-`ErdiTech/erdi-lrf-drivers`. Same package name, same `range` topic and
-parameters; it no longer needs `pip install erdi-lrf`, and the old
-`range_node` executable name still works as an alias.
+This package was released as `erdi_lrf_ros2` (0.1.0) and renamed to
+`erdi_lrf_driver` in 0.2.0 to follow [REP-144](https://reps.openrobotics.org/rep-0144/)
+(no redundant `ros2` in the name, driver packages end in `driver`). The
+repository moved to `ErdiTech/erdi_lrf_driver`; the old URL redirects. Topics,
+parameters and executable names (`erdi_lrf_node`, `range_node`) are unchanged;
+only the package name changes: use `ros2 launch erdi_lrf_driver erdi_lrf.launch.py`
+and `colcon build --packages-select erdi_lrf_driver`.
+
+It also replaces the earlier `ros2/` folder in
+[`ErdiTech/erdi-lrf-drivers`](https://github.com/ErdiTech/erdi-lrf-drivers); it no
+longer needs `pip install erdi-lrf`.
 
 ## Support / 打赏
 

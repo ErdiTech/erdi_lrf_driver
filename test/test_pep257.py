@@ -26,5 +26,5 @@ import pytest
 @pytest.mark.linter
 @pytest.mark.pep257
 def test_pep257():
-    rc = main(argv=['.', 'test', '--exclude', 'erdi_lrf_ros2/_erdi_lrf'])
+    rc = main(argv=['.', 'test', '--exclude', 'erdi_lrf_driver/_erdi_lrf'])
     assert rc == 0, 'Found code style errors / warnings'

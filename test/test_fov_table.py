@@ -20,7 +20,7 @@
 
 """Validate the per-model beam divergence table."""
 
-from erdi_lrf_ros2._erdi_lrf.models import (
+from erdi_lrf_driver._erdi_lrf.models import (
     FIELD_OF_VIEW_RAD, field_of_view_rad, MODELS)
 
 

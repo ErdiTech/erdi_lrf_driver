@@ -22,8 +22,8 @@
 
 import math
 
-from erdi_lrf_ros2._erdi_lrf import protocol_a as pa
-from erdi_lrf_ros2.erdi_lrf_node import ErdiLrfNode
+from erdi_lrf_driver._erdi_lrf import protocol_a as pa
+from erdi_lrf_driver.erdi_lrf_node import ErdiLrfNode
 import pytest
 import rclpy
 from rclpy.parameter import Parameter
