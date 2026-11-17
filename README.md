@@ -95,6 +95,7 @@ that runs against a fake serial port, so no hardware is needed.
 
 * Worked examples and wiring notes: [ErdiTech/erdi-lrf-ros2-examples](https://github.com/ErdiTech/erdi-lrf-ros2-examples)
 * Python driver and protocol documentation: [ErdiTech/erdi-lrf-drivers](https://github.com/ErdiTech/erdi-lrf-drivers)
+* Check what a module sends before starting the node: [UART frame decoder](https://erditech.github.io/lrf-uart-protocol-decoder/) (browser, or `pip install lrf-uart-decoder`)
 * Model table, datasheets and contact: [erdilrf.com](https://erdilrf.com)
 
 ## Renamed from `erdi_lrf_ros2`
