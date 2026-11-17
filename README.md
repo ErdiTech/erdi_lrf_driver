@@ -10,8 +10,8 @@ altitude/obstacle logic.
 
 Both published ERDI serial protocol families are supported (family A `55 AA`
 command/response, family B free-running `5C` frames). The serial codec is
-bundled in the package (`erdi_lrf_driver/_erdi_lrf`, MIT, taken from the
-[`erdi-lrf`](https://pypi.org/project/erdi-lrf/) 0.1.1 Python driver), so the
+vendored in the package (`erdi_lrf_driver/_erdi_lrf`, MIT, mirrored byte-for-byte from the
+[`erdi-lrf`](https://pypi.org/project/erdi-lrf/) 0.1.8 Python driver by `tools/sync_codec.py`; 24 models), so the
 only runtime dependency is `pyserial` (`python3-serial`).
 
 ## Install
@@ -73,7 +73,7 @@ upper bound is used (`< 6 mrad` becomes `0.006`).
 | SPD1200N2 | 0.0045 |
 | SPD1200N4 | 0.0045 |
 
-No divergence row is published for `LRF1200A1`, `SPD1200D03`, `LRF50H`, `LRF100H`, `LRF200H`, `LRF300H`, `LRF600H`, `LRF1500H`, `LRF22VB`, `LRF50VB`; these keep the `0.002` default, so set `field_of_view` yourself for them.
+No divergence row is published for `LRF1200A1`, `SPD1200D03`, `LRF50H`, `LRF100H`, `LRF200H`, `LRF300H`, `LRF600H`, `LRF1500H`, `LRF22VB`, `LRF50VB`, `LRF10VB`, `SPD1200S2G`; these keep the `0.002` default, so set `field_of_view` yourself for them.
 
 ## Topics
 

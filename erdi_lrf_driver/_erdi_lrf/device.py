@@ -15,6 +15,7 @@ from . import protocol_a as pa
 from . import protocol_b as pb
 from .errors import (
     ErdiLrfError,
+    FrameError,
     MeasurementFailed,
     NoReplyError,
     ProtocolHoldError,
@@ -154,23 +155,53 @@ class ErdiLRF:
             for _, frame in pb.iter_data_frames(bytes(buf), self.spec):
                 return frame
 
-    def _command_b(self, request: bytes, expected_command: int) -> pb.ReplyB:
+    def _command_b(self, request: bytes, expected_command: int,
+                   data_len: Optional[int] = None) -> pb.ReplyB:
+        """Send a ``5A`` command and return its reply.
+
+        A reply is cut by its length byte.  ``data_len`` names a longer data length
+        that a model's manual prints for this reply (LRF50VB serial number: length
+        byte ``02`` but four data bytes).  That longer frame is preferred; the
+        length-byte frame is used only if the longer one has not arrived by the
+        deadline, so a module that only ever sends the shorter form answers after
+        one full timeout.  Accepting "the first prefix whose checksum verifies" is
+        not safe: ``5A 8D 02 10 01 5F 00 00`` also verifies after six bytes.
+
+        A well-formed frame that answers some other command is skipped: the bytes
+        of a ``5C`` data frame can form one by coincidence.  It is reported as a
+        ``FrameError`` only if our own reply never arrives.
+        """
+        self.ser.reset_input_buffer()      # a late reply to an earlier command is not ours
         self.ser.write(request)
         buf = bytearray()
+        shorter = None
+        other = None                       # a well-formed reply to some other command
         deadline = time.monotonic() + max(self.timeout, 0.2)
         while time.monotonic() < deadline:
             byte = self.ser.read(1)
             if not byte:
                 continue
             buf += byte
-            # Command replies are short; scan for a 5A frame that verifies.
-            for start in range(len(buf)):
+            for start in range(len(buf) - 3):
                 if buf[start] != pb.CMD_HEADER:
                     continue
-                for end in range(start + 4, len(buf) + 1):
-                    chunk = bytes(buf[start:end])
-                    if pb.verify(chunk):
+                declared = buf[start + 2]
+                longer = data_len if data_len is not None and data_len > declared else None
+                for n in ((longer, declared) if longer else (declared,)):
+                    chunk = bytes(buf[start:start + n + 4])
+                    if len(chunk) != n + 4 or not pb.verify(chunk):
+                        continue
+                    if chunk[1] & ~pb.REPLY_BIT != expected_command:
+                        other = other or chunk     # not ours: keep listening
+                        continue
+                    if longer and n == declared:
+                        shorter = chunk    # keep listening for the longer printed form
+                    else:
                         return pb.parse_command_reply(chunk, expected_command)
+        if shorter is not None:
+            return pb.parse_command_reply(shorter, expected_command)
+        if other is not None:              # raises FrameError naming the command we did get
+            return pb.parse_command_reply(other, expected_command)
         raise NoReplyError(
             f"{self.spec.model}: no reply to command 0x{expected_command:02X}"
         )
@@ -277,7 +308,7 @@ class ErdiLRF:
                     f"table {dict(sorted(table.items()))}"
                 )
             frame = (pa.set_baud_spd1200d03(codes[0])
-                     if self.spec.model == "SPD1200D03"
+                     if self.spec.model in ("SPD1200D03", "SPD1200S2G")
                      else pa.set_baud(codes[0]))
             self.ser.write(frame)
             return
@@ -286,10 +317,29 @@ class ErdiLRF:
     def read_serial_number(self) -> int:
         """Family B: read the module serial number (little-endian)."""
         self._require(CAP_READ_SERIAL, "serial-number read")
-        four_byte = self.spec.model in ("LRF22VB", "LRF50VB")
-        request = pb.read_serial_number_4() if four_byte else pb.read_serial_number()
-        reply = self._command_b(request, pb.CMD_READ_SERIAL)
-        return int.from_bytes(reply.data, "little")
+        # Each model is sent the frame its own manual prints.  The two VB manuals
+        # print different length bytes for the same four data bytes, so if the
+        # module stays silent the other printed form is tried once.
+        # Only a silent module gets the other form; a malformed reply still raises.
+        data_len = None
+        if self.spec.model == "LRF22VB":
+            requests = (pb.read_serial_number_4(), pb.read_serial_number_lrf50vb())
+            data_len = 4
+        elif self.spec.model == "LRF50VB":
+            requests = (pb.read_serial_number_lrf50vb(), pb.read_serial_number_4())
+            data_len = 4
+        else:
+            requests = (pb.read_serial_number(),)
+        for i, request in enumerate(requests):
+            try:
+                reply = self._command_b(request, pb.CMD_READ_SERIAL, data_len=data_len)
+                return int.from_bytes(reply.data, "little")
+            except (NoReplyError, FrameError):
+                # FrameError here means only a reply to some other command arrived:
+                # for this request the module was still silent, so the other form is tried.
+                if i == len(requests) - 1:
+                    raise
+        raise AssertionError("unreachable")
 
     def read_software_version(self) -> str:
         """Family B: read the software version, e.g. ``"2.3"``.

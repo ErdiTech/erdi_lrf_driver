@@ -20,8 +20,8 @@
 
 """Validate the per-model beam divergence table."""
 
-from erdi_lrf_driver._erdi_lrf.models import (
-    FIELD_OF_VIEW_RAD, field_of_view_rad, MODELS)
+from erdi_lrf_driver._erdi_lrf.models import MODELS
+from erdi_lrf_driver.fov import FIELD_OF_VIEW_RAD, field_of_view_rad
 
 
 def test_every_tabulated_model_exists_and_fov_is_sane():

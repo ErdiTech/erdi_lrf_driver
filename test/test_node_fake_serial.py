@@ -23,6 +23,8 @@
 import math
 
 from erdi_lrf_driver._erdi_lrf import protocol_a as pa
+from erdi_lrf_driver._erdi_lrf import protocol_b as pb
+from erdi_lrf_driver._erdi_lrf.models import get_model
 from erdi_lrf_driver.erdi_lrf_node import ErdiLrfNode
 import pytest
 import rclpy
@@ -152,3 +154,34 @@ def test_model_without_documented_scale_is_refused():
         ErdiLrfNode(serial_factory=lambda *a: None, parameter_overrides=[
             Parameter('model', value='SPD1200D03'),
             Parameter('baud', value=115200)])
+
+
+class FakeStreamSerial(FakeSerial):
+    """Family-B module: free-running 5C data frames, 4354 mm for LRF10VB."""
+
+    def __init__(self, port, baud, timeout):
+        super().__init__(port, baud, timeout)
+        spec = get_model('LRF10VB')
+        self.frame = pb.build_data_frame(4354, spec)
+
+    def write(self, data):
+        return len(data)
+
+    def read(self, n=1):
+        while len(self.rx) < n:
+            self.rx += self.frame
+        return super().read(n)
+
+
+def test_family_b_lrf10vb_publishes_millimetres_as_metres():
+    node = ErdiLrfNode(
+        serial_factory=FakeStreamSerial,
+        parameter_overrides=[Parameter('model', value='LRF10VB'),
+                             Parameter('rate', value=50.0)])
+    try:
+        msg = collect(node)[0]
+    finally:
+        node.destroy_node()
+    assert msg.range == pytest.approx(4.354)
+    assert msg.min_range == pytest.approx(0.05)
+    assert msg.max_range == pytest.approx(9.0)

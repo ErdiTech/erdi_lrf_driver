@@ -6,7 +6,7 @@ package_name = 'erdi_lrf_driver'
 
 setup(
     name=package_name,
-    version='0.2.0',
+    version='0.3.0',
     packages=find_packages(exclude=['test']),
     data_files=[
         ('share/ament_index/resource_index/packages',
@@ -14,8 +14,9 @@ setup(
         ('share/' + package_name, ['package.xml']),
         ('share/' + package_name + '/launch', glob('launch/*.launch.py')),
     ],
-    # The ERDI serial codec is bundled (erdi_lrf_driver/_erdi_lrf), so the only
-    # runtime dependency is pyserial (rosdep key: python3-serial).
+    # The ERDI serial codec is vendored (erdi_lrf_driver/_erdi_lrf, mirrored
+    # from erdi-lrf by tools/sync_codec.py), so the only runtime dependency is
+    # pyserial (rosdep key: python3-serial).
     install_requires=['setuptools', 'pyserial'],
     zip_safe=True,
     maintainer='ERDI Technology',

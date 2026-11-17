@@ -34,3 +34,12 @@ jobs:
           source /opt/ros/${{ matrix.distro }}/setup.bash
           cd ws && colcon test --packages-select erdi_lrf_driver --event-handlers console_direct+
           colcon test-result --verbose
+      - name: Vendored codec matches the erdi-lrf PyPI release
+        shell: bash
+        run: |
+          python3 -m venv --system-site-packages /tmp/v
+          /tmp/v/bin/pip install -q erdi-lrf==0.1.8
+          source /opt/ros/${{ matrix.distro }}/setup.bash
+          source ws/install/setup.bash
+          /tmp/v/bin/python -m pytest ws/src/erdi_lrf_driver/test/test_vendored_codec.py -q -p no:cacheprovider
+          /tmp/v/bin/python ws/src/erdi_lrf_driver/tools/sync_codec.py --check "$(/tmp/v/bin/python -c 'import erdi_lrf,os;print(os.path.dirname(erdi_lrf.__file__))')"

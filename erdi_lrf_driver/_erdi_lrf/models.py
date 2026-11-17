@@ -79,6 +79,21 @@ A_BAUD_TYPES_SPD1200D03: Mapping[int, int] = {
     0x07: 230400,
 }
 
+#: SPD1200S2G publishes a third table, again different from the other two.
+#: Source (D:/erdi-kb protocols/_source/SPD1200S2G.txt, "6.1 Baud Rate Configuration"):
+#: "Type 01 9600 bps / 02 14400 / 03 19200 / 04 38400 / 05 56000 / 06 115200 bps
+#: (default) / 07 128000 / 08 230400 bps"
+A_BAUD_TYPES_SPD1200S2G: Mapping[int, int] = {
+    0x01: 9600,
+    0x02: 14400,
+    0x03: 19200,
+    0x04: 38400,
+    0x05: 56000,
+    0x06: 115200,
+    0x07: 128000,
+    0x08: 230400,
+}
+
 #: Family B baud rates, encoded as ``bps // 100`` little-endian uint16.
 #: Source (LRF22VB.txt UART command 3): "60 00 (9600) / C0 00 (19200) /
 #: 80 01 (38400) / 80 04 (115200) / 00 09 (230400) / 00 0A (256000) /
@@ -356,6 +371,51 @@ MODELS: dict = {
         ),
     ),
 
+    # ---- Family A, SPD1200S2G (8-byte distance protocol only) --------------
+    "SPD1200S2G": ModelSpec(
+        model="SPD1200S2G", family="A", default_baud=115200, frame_len=8,
+        distance_bytes=2, unit="m", raw_scale=10.0, out_of_range_raw=None,
+        min_range_m=0.1, max_range_m=1200.0,
+        capabilities=frozenset({CAP_SINGLE, CAP_CONTINUOUS, CAP_STOP, CAP_SET_BAUD}),
+        baud_types=A_BAUD_TYPES_SPD1200S2G,
+        sources={
+            "baud": "The interface uses UART-TTL at 115200 bps by default.",
+            "tx_checksum": "Command: 55 AA 88/89/8E FF FF FF FF SUM[3:7]; SUM[3:7] is the sum of bytes 3 through 7.",
+            "rx_checksum": "Response: 55 AA 88/89 STA FF DATA_H DATA_L SUM[1:7]; SUM[1:7] is the sum of bytes 1 through 7.",
+            "status": "STA =0x00:configuration failed ; STA =0x01 :configuration successful, with data reported.",
+            "unit": (
+                "Data is returned in hexadecimal format. Each reported result is the "
+                "actual measured value multiplied by 10. (Reported quantity: distance.)"
+            ),
+            "baud_request": "Command 55 AA 01 FF FF FF Type SUM[3:7]; Response 55 AA 01 STA FF FF Type SUM[1:7].",
+        },
+        notes=(
+            "Source: SPD1200S2G user manual section 6 'Communication Protocol' "
+            "(transcribed in the ERDI knowledge base, re-read from the page images "
+            "2026-11-15).  Only the 8-byte distance protocol is driven: single "
+            "(0x88), continuous (0x89), stop (0x8E) and the baud request "
+            "(55 AA 01 FF FF FF Type SUM, 8 entries).",
+            "NOT DRIVEN, by the manual's own warning: the 12-byte angle / "
+            "point-to-point packets (0x97 / 0x96: zeroing, read angles, "
+            "point-to-point).  The manual says to 'confirm the field scale and "
+            "signed-number encoding for the 12-byte responses' before implementing "
+            "them, and uses 'the protocol supplied for the optional combined "
+            "distance and angle output configuration'.",
+            "CHECKSUM OVERFLOW UNCONFIRMED: the manual says to confirm 'the checksum "
+            "overflow convention for both packet formats' and prints no worked SUM "
+            "for 0x88/0x89/0x8E.  This driver keeps the lower eight bits, as every "
+            "other ERDI family-A manual states.  If a delivered unit ignores the "
+            "commands, confirm the convention with ERDI.",
+            "DESIGNATION CONFLICT in the factory pack: a second manual in the same "
+            "folder is headed 'SPD1200ZG' on every page, and the datasheet "
+            "dimensions disagree with the catalogue table.  Confirm with ERDI which "
+            "designation the delivered part carries; this entry follows the "
+            "SPD1200S2G-titled manual.",
+            "Unlike the LR / SPD1200N series, the manual prints no self-test row, "
+            "angle row (0x8A) or LD constant-ON row for this model.",
+        ),
+    ),
+
     # ---- Family B, H series (centimetres) ---------------------------------
     "LRF50H": _h("LRF50H", 50.0, 1_000_000, caps=_B_H_CAPS | {CAP_START_STOP}),
     "LRF100H": _h("LRF100H", 100.0, 1_000_000),
@@ -462,15 +522,53 @@ MODELS: dict = {
             "Our engineering notes list out_of_range as unresolved for "
             "this model; the manual prose does state 'When out of range, output "
             "would be 50000', which is what this driver uses.",
-            "MANUAL DISCREPANCY (reported, not resolved): the printed 'Reading "
-            "serial no.' request '5A 0D 02 0D 0D 0D 0D BC' does not satisfy the "
-            "manual's own Check_Sum function for either length byte "
-            "(0x02 -> 0xBE, 0x04 -> 0xBA).  The printed reply "
-            "'5A 8D 02 10 01 00 00 5F' does check out.  This driver builds the "
-            "request with the Check_Sum function.",
+            "The printed 'Reading serial no.' request is "
+            "'5A 0D 02 0D 0D 0D 0D BC' (length byte 02, four 0D data bytes; the "
+            "LRF22VB manual prints 04 and BA for the same four bytes).  Both "
+            "satisfy the manual's own Check_Sum function.  The printed reply "
+            "'5A 8D 02 10 01 00 00 5F' also checks out; its length byte is 02 "
+            "although it carries four data bytes, and the driver reads all four.  "
+            "This driver sends the frame exactly as the LRF50VB manual prints it.",
             "Supported output frequencies per the manual: 100/50/20/10/1 Hz (the "
             "set-frequency row) and 200/100/50/20/10/1 Hz (the read-frequency "
             "row) -- the manual lists both.",
+        ),
+    ),
+    "LRF10VB": ModelSpec(
+        model="LRF10VB", family="B", default_baud=460800, frame_len=4,
+        distance_bytes=2, unit="mm", raw_scale=1.0, out_of_range_raw=65535,
+        min_range_m=0.05, max_range_m=9.0,
+        capabilities=frozenset({CAP_START_STOP}),
+        sources={
+            "baud": "UART Baud Rate 460800 (adjustable) Data Bit 8 Stop Bit 1 Parity Bit N/A",
+            "checksum": (
+                "EC: The checksum byte is calculated by summing all bytes from the "
+                "second byte (02) to the second-last byte (11), then inverting the "
+                "result."
+            ),
+            "unit": (
+                "02 11: Distance value 2 bytes means the measuring distance is "
+                "4354mm, little-endian, Range:0-65535, When out of range, its "
+                "output is 65535."
+            ),
+            "start_stop": (
+                "Stop Ranging 5A 0A 02 00 00 F3 -> 5A 8A 02 00 00 73; "
+                "Start Ranging 5A 0A 02 02 00 F1 -> 5A 8A 02 02 00 71"
+            ),
+            "range": "LRF10VB Specification V3.0: 0.05-9 m at 90% reflectivity, 50 Hz output.",
+        },
+        notes=(
+            "Source: LRF10VB Specification V3.0, section 6 'Communication "
+            "Protocol: UART' and 6.3 'UART Commands'.",
+            "Only Start/Stop ranging are driven.  Row 1 of the manual's command "
+            "table is labelled 'Modify Baud Rate' but prints the frames "
+            "'5A 0D 02 0D 0D 0D 0D BC' / '5A 8D 02 10 01 00 00 5F', the same "
+            "bytes as the read-serial frames in the LRF22VB/LRF50VB manuals "
+            "(no '5A 06 ...' baud frame is printed), so set_baud is not offered "
+            "for this model.  The manual publishes no read-serial, read-version, "
+            "frequency or IIC commands.",
+            "Fixed output rate: 50 Hz per the specification table; the manual "
+            "gives no command to change it.",
         ),
     ),
 }
@@ -478,10 +576,7 @@ MODELS: dict = {
 #: Models in the published catalogue whose communication protocol ERDI has not
 #: released.  Listed so that ``erdi-lrf models`` is honest about the whole
 #: catalogue rather than silently omitting them.
-UNPUBLISHED_PROTOCOL = {
-    "LRF10VB": "Upstream has not published a manual for this model (940 nm, 0.05-9 m).",
-    "SPD1200S2G": "Upstream has not published a manual for this model (0.1-1200 m, with gyro).",
-}
+UNPUBLISHED_PROTOCOL: dict = {}
 
 
 def get_model(name: str) -> ModelSpec:
@@ -499,27 +594,3 @@ def get_model(name: str) -> ModelSpec:
     raise UnknownModelError(
         f"unknown model {name!r}. Published protocols: {', '.join(sorted(MODELS))}."
     )
-
-#: Full beam divergence in radians, parsed from the published specification
-#: table of each model at https://erdilrf.com/models/ (2026-11-06).  Values are
-#: the datasheet *upper bound* ("< 6 mrad" -> 0.006).  Models absent from this
-#: table have no divergence row in their published specification.
-FIELD_OF_VIEW_RAD: Mapping[str, float] = {
-    "LR1000E2": 0.009,  # < 9 mrad
-    "LR1000E4": 0.009,  # < 9 mrad
-    "LR1200E2": 0.004,  # < 4 mrad (small laser spot)
-    "LR1200E4": 0.004,  # < 4 mrad (small laser spot)
-    "LR1500E2": 0.006,  # < 6 mrad (small laser spot)
-    "LR1500E4": 0.006,  # < 6 mrad (small laser spot)
-    "LR2000E2": 0.006,  # < 6 mrad
-    "LR2000E4": 0.006,  # < 6 mrad
-    "LRF3000A1": 0.01,  # ≤10 mrad
-    "SPD1200N0": 0.0045,  # <4.5 mrad
-    "SPD1200N2": 0.0045,  # <4.5 mrad
-    "SPD1200N4": 0.0045,  # <4.5 mrad
-}
-
-
-def field_of_view_rad(model: str, default: float = 0.002) -> float:
-    """Return the tabulated beam divergence (rad) for ``model``, else ``default``."""
-    return FIELD_OF_VIEW_RAD.get(model.upper(), default)
